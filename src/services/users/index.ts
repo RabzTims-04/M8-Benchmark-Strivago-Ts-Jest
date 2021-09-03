@@ -1,10 +1,10 @@
-import { Router } from "express"
+import { Router, Request, Response, NextFunction } from "express"
 import createError from "http-errors"
-import passport from "passport"
-import { JWTAuthMiddleware } from "../../auth/middlewares.js"
-import UserModel from "./schema.js"
-import AccomodationsModel from "../accomodations/schema.js"
-import { hostOnly } from "./sharedMiddlewares.js"
+import { JWTAuthMiddleware } from "../../auth/middlewares"
+import UserModel from "./schema"
+import AccomodationsModel from "../accomodations/schema"
+import { hostOnly } from "./sharedMiddlewares"
+import { DbUser, User } from "./schemaInterface"
 
 const usersRouter = Router()
 
@@ -48,36 +48,17 @@ usersRouter.get("/:userId", JWTAuthMiddleware, hostOnly, async (req, res, next) 
   }
 })
 
-/***************POST USER DETAILS*******************/
-
-/* usersRouter.post("/", async (req, res, next) => {
-    try {
-        const { email } = req.body
-        const user = await UserModel.findOne({ email: email})
-        if(user){
-            next(createError(403, "Email already exists"))
-        }else{
-            const newUser = new UserModel(req.body)
-            const {_id} = await newUser.save()
-            res.status(201).send({_id})
-        }
-    } catch (error) {
-        console.log(error);
-        next(error)
-    }
-}) */
-
 /***************EDIT ONLY YOUR USER DEATILS*******************/
 
 usersRouter.put("/me", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    console.log("req.user", req.user)
-    console.log("req.body", req.body)
-    req.user.name = req.body.name ? req.body.name : req.user.name
-    req.user.surname = req.body.surname ? req.body.surname : req.user.surname
-    req.user.email = req.body.email ? req.body.email : req.user.email
-    req.user.role = req.body.role ? req.body.role : req.user.role
-    const editUser = await req.user.save()
+    const body = req.user as DbUser
+    body.name = req.body.name ? req.body.name : body.name
+    body.surname = req.body.surname ? req.body.surname : body.surname
+    body.email = req.body.email ? req.body.email : body.email
+    body.role = req.body.role ? req.body.role : body.role
+    req.user = body
+    const editUser = await body.save()
     res.send(editUser)
   } catch (error) {
     console.log(error)
@@ -107,9 +88,9 @@ usersRouter.put("/:userId", JWTAuthMiddleware, hostOnly, async (req, res, next) 
 
 /***************DELETE ONLY YOUR USER DEATILS*******************/
 
-usersRouter.delete("/me", JWTAuthMiddleware, async (req, res, next) => {
+usersRouter.delete("/me", JWTAuthMiddleware, async (req:Request, res: Response, next: NextFunction) => {
   try {
-    await req.user.deleteOne()
+    await (req.user as DbUser).deleteOne()
     res.status(204).send()
   } catch (error) {
     console.log(error)
@@ -139,7 +120,7 @@ usersRouter.get(
   hostOnly,
   async (req, res, next) => {
     try {
-      const userId = req.user._id
+      const userId = (req.user as DbUser)._id
       const myAccomodations = await AccomodationsModel.find({ host: userId })
       res.send(myAccomodations)
     } catch (error) {

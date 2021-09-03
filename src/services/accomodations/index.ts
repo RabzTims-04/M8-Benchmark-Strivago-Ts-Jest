@@ -1,9 +1,9 @@
 import { Router } from "express"
 import createError from "http-errors"
-import { JWTAuthMiddleware } from "../../auth/middlewares.js"
-import { hostOnly } from "../users/sharedMiddlewares.js"
-
-import AccomodationModel from "./schema.js"
+import { JWTAuthMiddleware } from "../../auth/middlewares"
+import { hostOnly } from "../users/sharedMiddlewares"
+import AccomodationModel from "./schema"
+import { DbAccomodation } from "./schemaInterface"
 
 const accomodationsRouter = Router()
 
@@ -33,7 +33,7 @@ accomodationsRouter.get("/:id", JWTAuthMiddleware, async (req, res, next) => {
 
 accomodationsRouter.post("/", JWTAuthMiddleware, hostOnly, async (req, res, next) => {
   try {
-    const newAccomodation = new AccomodationModel({ ...req.body, host: req.user.id })
+    const newAccomodation = new AccomodationModel({ ...req.body, host: (req.user as DbAccomodation).id })
     const { _id } = await newAccomodation.save()
     res.status(201).send({ _id })
   } catch (error) {

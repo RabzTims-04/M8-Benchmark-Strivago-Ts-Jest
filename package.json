@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "watch":"jest --watchAll",
-    "dev": "ts-node-dev src",
-    "start": "node dist"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watchAll",
+    "dev": "ts-node-dev --respawn --pretty --transpile-only ./src/index",
+    "start": "node ./dist/index"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +16,7 @@
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "express": "^4.17.1",
     "express-list-endpoints": "^6.0.0",
     "express-validator": "^6.12.1",
@@ -28,8 +29,18 @@
     "passport-google-oauth20": "^2.0.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
+    "@types/express-list-endpoints": "^6.0.0",
+    "@types/http-errors": "^1.8.1",
     "@types/jest": "^27.0.1",
+    "@types/jsonwebtoken": "^8.5.5",
+    "@types/morgan": "^1.9.3",
+    "@types/passport": "^1.0.7",
+    "@types/passport-facebook": "^2.1.11",
+    "@types/passport-google-oauth20": "^2.0.9",
     "@types/supertest": "^2.0.11",
     "dotenv": "^10.0.0",
     "jest": "^27.1.0",

@@ -4,18 +4,17 @@ import listEndpoints from "express-list-endpoints"
 import cors from "cors"
 import createError from "http-errors"
 import morgan from "morgan"
-import mongoose from "mongoose"
 
-import usersRouter from "./services/users/index.js"
-import accomodationsRouter from "./services/accomodations/index.js"
-import authRouter from "./services/auth.js"
+import usersRouter from "./services/users/index"
+import accomodationsRouter from "./services/accomodations/index"
+import authRouter from "./services/auth"
 
-import { errorMiddlewares } from "./errorMiddlewares.js"
+import * as errors from "./errorMiddlewares"
 import cookieParser from "cookie-parser"
 import passport from "passport"
-import facebookStrategy, { googleStrategy } from "./auth/oauth.js"
+import { googleStrategy, facebookStrategy } from "./auth/oauth"
 
-const port = process.env.PORT || 3001
+
 const server = express()
 
 server.use(cookieParser())
@@ -45,7 +44,11 @@ server.use("/users", usersRouter)
 server.use("/accomodation", accomodationsRouter)
 server.use("/auth", authRouter)
 
-server.use([errorMiddlewares])
+server.use(errors.badRequestMiddleware)
+server.use(errors.catchErrorMiddleware)
+server.use(errors.forbiddenHandler)
+server.use(errors.notFoundMiddleware)
+server.use(errors.unAuthorizedHandler)
 
 console.table(listEndpoints(server))
 
@@ -56,14 +59,4 @@ server.use((req, res) => {
   }
 })
 
-mongoose
-  .connect(process.env.MONGO_CONNECTION, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() =>
-    server.listen(port, () => {
-      console.log("Server running on port ", port)
-    })
-  )
-  .catch((err) => console.log(err))
+export default server

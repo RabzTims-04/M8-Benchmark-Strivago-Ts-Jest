@@ -1,8 +1,9 @@
 import mongoose from "mongoose"
+import { AccomodationModel, DbAccomodation } from "./schemaInterface"
 
 const { Schema, model } = mongoose
 
-const AccomodationSchema = new Schema(
+const AccomodationSchema = new Schema<DbAccomodation>(
   {
     name: {
       type: String,
@@ -31,4 +32,4 @@ const AccomodationSchema = new Schema(
   }
 )
 
-export default model("Accomodation", AccomodationSchema)
+export default model<DbAccomodation, AccomodationModel>("Accomodation", AccomodationSchema)

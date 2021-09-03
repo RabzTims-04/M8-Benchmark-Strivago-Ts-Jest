@@ -1,8 +1,10 @@
-import { Router } from "express"
+import { Router, Request, Response, NextFunction } from "express"
 import createError from "http-errors"
 import passport from "passport"
-import { JWTAuthenticate, refreshTokenFunc } from "../auth/tools.js"
-import UserModel from "./users/schema.js"
+import { JWTAuthenticate, refreshTokenFunc } from "../auth/tools"
+import { PassportNextUser, PassportUser } from "../auth/typings/index"
+import UserModel from "./users/schema"
+import { DbUser, User } from "./users/schemaInterface"
 
 const authRouter = Router()
 
@@ -34,7 +36,7 @@ authRouter.post("/register", async (req, res, next) => {
       next(createError(403, "Email already exists"))
     } else {
       const newUser = new UserModel(req.body)
-      const addedUser = await newUser.save()
+      const addedUser = await newUser.save() as DbUser
       const { accessToken, refreshToken } = await JWTAuthenticate(addedUser)
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
@@ -55,11 +57,11 @@ authRouter.get(
   passport.authenticate("facebook"),
   async (req, res, next) => {
     try {
-      res.cookie("accessToken", req.user.tokens.accessToken, {
+      res.cookie("accessToken", (req.user as PassportNextUser).tokens.accessToken, {
         httpOnly: true,
         secure: false,
       })
-      res.cookie("refreshToken", req.user.tokens.refreshToken, {
+      res.cookie("refreshToken", (req.user as PassportNextUser).tokens.refreshToken, {
         httpOnly: true,
         secure: false,
       })
@@ -95,11 +97,11 @@ authRouter.get(
   passport.authenticate("google"),
   async (req, res, next) => {
     try {
-      res.cookie("accessToken", req.user.tokens.accessToken, {
+      res.cookie("accessToken", (req.user as PassportNextUser).tokens.accessToken, {
         httpOnly: true,
         secure: false,
       })
-      res.cookie("refreshToken", req.user.tokens.refreshToken, {
+      res.cookie("refreshToken", (req.user as PassportNextUser).tokens.refreshToken, {
         httpOnly: true,
         secure: false,
       })

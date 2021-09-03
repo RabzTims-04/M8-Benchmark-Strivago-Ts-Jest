@@ -1,9 +1,10 @@
 import mongoose from "mongoose"
 import bcrypt from "bcrypt"
+import { DbUser, UserModel } from "./schemaInterface"
 
 const { Schema, model } = mongoose
 
-const UserSchema = new Schema(
+const UserSchema = new Schema<DbUser>(
   {
     name: {
       type: String,
@@ -47,7 +48,7 @@ const UserSchema = new Schema(
 
 UserSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
-    this.password = await bcrypt.hash(this.password, 10)
+    this.password = await bcrypt.hash(this.password!, 10)
   }
   next()
 })
@@ -60,10 +61,10 @@ UserSchema.methods.toJSON = function () {
   return userObject
 }
 
-UserSchema.statics.checkCredentials = async function (email, password) {
+UserSchema.statics.checkCredentials = async function (email: string, password: string) {
   const user = await this.findOne({ email })
   if (user) {
-    const isMatch = await bcrypt.compare(password, user.password)
+    const isMatch = await bcrypt.compare(password, user.password!)
     if (isMatch) {
       return user
     } else {
@@ -74,4 +75,4 @@ UserSchema.statics.checkCredentials = async function (email, password) {
   }
 }
 
-export default model("User", UserSchema)
+export default model<DbUser, UserModel>("User", UserSchema)

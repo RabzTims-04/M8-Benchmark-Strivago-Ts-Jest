@@ -1,31 +1,32 @@
 import passport from "passport"
-import FacebookStrategy from "passport-facebook"
-import UserModel from "../services/users/schema.js"
-import { JWTAuthenticate } from "./tools.js"
-import GoogleStrategy from "passport-google-oauth20"
+import { Strategy as FacebookStrategy } from "passport-facebook"
+import UserModel from "../services/users/schema"
+import { JWTAuthenticate } from "./tools"
+import { Strategy as GoogleStrategy} from "passport-google-oauth20"
+import { DbUser } from "../services/users/schemaInterface"
 
-const facebookStrategy = new FacebookStrategy(
+export const facebookStrategy = new FacebookStrategy(
   {
-    clientID: process.env.FACEBOOK_APP_ID,
-    clientSecret: process.env.FACEBOOK_APP_SECRET,
+    clientID: process.env.FACEBOOK_APP_ID!, 
+    clientSecret: process.env.FACEBOOK_APP_SECRET!,
     callbackURL: "https://localhost:4000/auth/facebookRedirect",
     profileFields: ["id", "name", "email"],
   },
   async (accessToken, refreshToken, profile, passportNext) => {
     try {
-      const user = await UserModel.findOne({ facebookId: profile.id })
+      const user = await UserModel.findOne({ facebookId: profile.id }) as DbUser
       if (user) {
         const tokens = await JWTAuthenticate(user)
         passportNext(null, { tokens })
       } else {
         const newUser = {
-          name: profile.name.givenName,
-          surname: profile.name.familyName,
+          name: profile?.name?.givenName,
+          surname: profile?.name?.familyName,
           facebookId: profile.id,
         }
         const createdUser = new UserModel(newUser)
 
-        const savedUser = await createdUser.save()
+        const savedUser = await createdUser.save() as DbUser
 
         const tokens = await JWTAuthenticate(savedUser)
 
@@ -39,27 +40,27 @@ const facebookStrategy = new FacebookStrategy(
 
 export const googleStrategy = new GoogleStrategy(
   {
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_SECRET,
+    clientID: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_SECRET!,
     callbackURL: "http://localhost:4000/auth/redirectGoogle",
   },
   async (accessToken, refreshToken, profile, passportNext) => {
     try {
-      const user = await UserModel.findOne({ googleId: profile.id })
+      const user = await UserModel.findOne({ googleId: profile.id }) as DbUser
 
       if (user) {
-        const tokens = await JWTAuthenticate(user)
+        const tokens = await JWTAuthenticate(user) 
         passportNext(null, { tokens })
       } else {
         const newUser = {
-          name: profile.name.givenName,
-          surname: profile.name.familyName,
+          name: profile?.name?.givenName,
+          surname: profile?.name?.familyName,
           googleId: profile.id,
         }
 
         const createdUser = new UserModel(newUser)
 
-        const savedUser = await createdUser.save()
+        const savedUser = await createdUser.save() as DbUser
         console.log("hi")
         const tokens = await JWTAuthenticate(savedUser)
         passportNext(null, { user: savedUser, tokens })
@@ -74,5 +75,3 @@ export const googleStrategy = new GoogleStrategy(
 passport.serializeUser(function (user, passportNext) {
   passportNext(null, user)
 })
-
-export default facebookStrategy
